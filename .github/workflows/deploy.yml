@@ -9,17 +9,21 @@ on:
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+  FRONTEND_BUILD_FOLDER: build   # or 'dist' if your React app outputs to dist/
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # -----------------------
+      # Checkout repo
+      # -----------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
       # -----------------------
-      # AWS LOGIN
+      # Configure AWS credentials
       # -----------------------
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -29,19 +33,19 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       # -----------------------
-      # FRONTEND DEPLOY (React)
+      # FRONTEND DEPLOY
       # -----------------------
-      - name: Install & Build frontend
+      - name: Build frontend
         run: |
           cd frontend
           npm install
           npm run build
 
-      - name: Upload to S3
+      - name: Upload frontend to S3
         run: |
-          aws s3 sync frontend/build s3://${{ vars.S3_BUCKET_NAME }} --delete
+          aws s3 sync frontend/${{ env.FRONTEND_BUILD_FOLDER }} s3://${{ vars.S3_BUCKET_NAME }} --delete
 
-      - name: Invalidate CloudFront
+      - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} \
@@ -58,24 +62,33 @@ jobs:
         run: |
           docker build -t $ECR_REPOSITORY:latest ./backend
 
-      - name: Tag image
+      - name: Tag image for ECR
         run: |
           docker tag $ECR_REPOSITORY:latest ${{ steps.ecr-login.outputs.registry }}/$ECR_REPOSITORY:latest
 
-      - name: Push to ECR
+      - name: Push image to ECR
         run: |
           docker push ${{ steps.ecr-login.outputs.registry }}/$ECR_REPOSITORY:latest
 
       # -----------------------
-      # DEPLOY TO EC2
+      # DEPLOY BACKEND ON EC2
       # -----------------------
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Deploy backend on EC2
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/your-project
-            docker compose pull
-            docker compose up -d
+            # Stop & remove previous container if exists
+            docker stop backend || true
+            docker rm backend || true
+
+            # Pull latest image from ECR
+            docker pull ${{ steps.ecr-login.outputs.registry }}/$ECR_REPOSITORY:latest
+
+            # Run container
+            docker run -d \
+              --name backend \
+              -p 8080:8080 \
+              ${{ steps.ecr-login.outputs.registry }}/$ECR_REPOSITORY:latest
