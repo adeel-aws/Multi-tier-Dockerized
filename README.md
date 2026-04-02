@@ -32,20 +32,20 @@ Designed for **scalable, portable deployment** on cloud platforms like AWS EC2 w
 ```text
 project-root/
 ├── backend/
-│   ├── src/main/java/com/example/backend/BackendApplication.java  # Spring Boot app
-│   ├── pom.xml                                                    # Maven configuration
-│   └── Dockerfile                                                 # Dockerfile for backend
+│   ├── src/main/java/com/example/backend/BackendApplication.java  
+│   ├── pom.xml                                                    
+│   └── Dockerfile                                                 
 ├── frontend/
 │   ├── src/
-│   │   └── App.js                                                 # React App entry
-│   ├── package.json                                               # NPM configuration
-│   └── Dockerfile                                                 # Dockerfile for frontend
+│   │   └── App.js                                                 
+│   ├── package.json                                               
+│   └── Dockerfile                                                 
 ├── db/
-│   └── Dockerfile                                                 # MySQL Dockerfile
+│   └── Dockerfile                                                 
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml                                             # CI/CD pipeline for EC2 deployment
-├── docker-compose.yml                                             # Orchestrates all containers
+│       └── deploy.yml                                             
+├── docker-compose.yml                                             
 ```
 
 ---
@@ -65,7 +65,7 @@ sudo systemctl start docker
 3. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/Dockerized_Multi-Tier_App.git
+git clone https://github.com/adeel-aws/Multi-tier-Dockerized.git
 cd Dockerized_Multi-Tier_App
 ```
 
@@ -88,7 +88,6 @@ docker-compose up --build -d
   ```
 # **📸 Project Screenshots**
 
-![WhatsApp Image 2025-01-26 at 23 21 23_6cc4cb7d](https://github.com/user-attachments/assets/0aec5fe5-6623-4163-baad-8d3f7bcf5c88)
 
 ![WhatsApp Image 2025-01-26 at 23 20 29_0f4f6540](https://github.com/user-attachments/assets/5889c38b-3709-4556-9502-f4f18312e3fc)
 
